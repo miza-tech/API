@@ -22,7 +22,7 @@ class CmsUser extends Authenticatable
      *
      * @var array
      */
-    protected $fillable = ['phone', 'password', 'realname', 'idCard', 'department_id', 'age', 'gender', 'password_reset_needed', 'activated'];
+    protected $fillable = ['phone', 'password', 'realname', 'idCard', 'department_id', 'age', 'gender', 'password_reset_needed', 'status'];
 
     /**
      * The attributes that should be hidden for arrays.
@@ -69,6 +69,15 @@ class CmsUser extends Authenticatable
     public function department()
     {
         return $this->belongsTo('App\Models\Cms\Department');
+    }
+
+    public function getRolesAttribute()
+    {
+        if ($this->isSuper()) {
+            return collect(Role::list())->pluck('id')->toArray();
+        } else {
+            return $this->roles()->pluck('id');
+        }
     }
 
     public static function profile()

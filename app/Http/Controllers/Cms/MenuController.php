@@ -20,6 +20,7 @@ class MenuController extends ApiController
 			'display_name' => 'required',
 			'url' => '',
 			'permissions' => 'array',
+			'hidden' => 'boolean'
 		];
 		if ($request->input('parent_id')) {
 			$rules['parent_id'] = 'exists:cms_menus,id';
@@ -37,7 +38,8 @@ class MenuController extends ApiController
 			'url',
 			'route',
 			'description',
-			'icon'
+			'icon',
+			'hidden'
 		])->toArray();
 
 		$menu = Menu::create($inputData);
@@ -66,6 +68,7 @@ class MenuController extends ApiController
 			'display_name' => 'required',
 			'url' => '',
 			'permissions' => 'array',
+			'hidden' => 'boolean'
 		];
 		if ($request->input('parent_id')) {
 			$rules['parent_id'] = 'exists:cms_menus,id';
@@ -83,7 +86,8 @@ class MenuController extends ApiController
 			'url',
 			'route',
 			'description',
-			'icon'
+			'icon',
+			'hidden'
 		])->toArray();
 
 		$menu->update($updateData);

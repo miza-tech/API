@@ -4,67 +4,19 @@ namespace App\Http\Controllers\Cms;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\ApiController;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use App\CmsUser;
-use App\Models\Cms\Department;
-use App\Models\Cms\Menu;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\ApiController;
+use App\BackendUser;
 
-class UserController extends ApiController
+class BackendUserController extends ApiController
 {
-	private function getProfile()
-	{
-		$user = Auth::guard('cms')->user();
-		if ($user) {
-			$roles = $user->roles();
-			$permissions = $user->permissions($user->roles());
-			$menus = $user->menus();
-			$user->roles = $roles->pluck('id');
-			$user->permissions = $permissions->pluck('id');
-			$user->menus = $menus->pluck('id');
-		}
-		return $user;
-	}
-	public function config (Request $request)
-	{
-		// return $this->VALIDATOR_FAIL([]);
-		$config = [
-			'authenticated' => Auth::guard('cms')->check(),
-			'user' => CmsUser::profile(),
-			'menus' => Menu::tree()
-		];
-		return $this->SUCCESS($config);
-	}
-
-	public function profileInfo (Request $request)
-	{
-		return $this->SUCCESS($this->getProfile());
-	}
-
-	public function profileUpdate (Request $request)
-	{
-		$validator = Validator::make($request->all(), [
-			'age' => 'integer',
-			'gender' => 'in:male,female',
-		]);
-		if ($validator->fails())
-		{
-			return $this->VALIDATOR_FAIL($validator->errors());
-		}
-
-		$updateData = collect($request->all())->only(['age', 'gender'])->toArray();
-		$uid = Auth::guard('cms')->id();
-		CmsUser::whereId($uid)->update($updateData);
-
-		return $this->SUCCESS(CmsUser::find($uid));
-	}
-
 	public function create (Request $request)
 	{
 		$rules = [
-			'phone' => 'required|unique:cms_users,phone',
+			'backend_id' => 'required|exists:backend_users,id',
+			'phone' => 'required|unique:backend_users,phone',
+			'username' => 'required|unique:backend_users,username',
 			'password' => 'required|min:6|max:32',
 			'realname' => '',
 			'idCard' => '',
@@ -84,7 +36,7 @@ class UserController extends ApiController
 		$userData = collect($request->all())->only(collect($rules)->keys()->toArray())->toArray();
 		$userData['password'] = Hash::make($userData['password']);
 
-		$user = CmsUser::create($userData);
+		$user = BackendUser::create($userData);
 		if ($user) {
 			if (!empty($request->input('roles'))) {
 				$user->roles()->sync($request->input('roles'));
@@ -97,18 +49,21 @@ class UserController extends ApiController
 
 	public function edit (Request $request, $id)
 	{
-		$user = CmsUser::find($id);
+		$user = BackendUser::find($id);
 		if (!$user) {
 			return $this->NOT_FOUND();
 		}
 
 		$rules = [
-			'phone' => 'required|unique:cms_users,phone,' . $user->id,
+			'phone' => 'required|unique:backend_users,phone,'.$user->id,
+			'username' => 'required|unique:backend_users,username.'.$user->id,
+			'password' => 'required|min:6|max:32',
 			'realname' => '',
 			'idCard' => '',
 			'department_id' => 'required|exists:cms_departments,id',
 			'age' => 'integer',
 			'gender' => 'in:male,female',
+			'password_reset_needed' => 'boolean',
 			'status' => 'in:nonactivated,activated,freeze',
 			'roles' => 'array'
 		];
@@ -135,7 +90,9 @@ class UserController extends ApiController
 	public function list (Request $request)
 	{
 		$allowFilterFields = [
+			'backend_id' => '=',
 			'phone' => 'like',
+			'username' => 'like',
 			'realname' => 'like',
 			'idCard'=>'like',
 			'department_id' => '=',
@@ -147,8 +104,7 @@ class UserController extends ApiController
 		$filterData = collect($request->all())
 				->only(collect($allowFilterFields)->keys()->toArray());
 
-		$supers = explode(',', config('miza.super'));
-		$users = CmsUser::with('department')->whereNotIn('phone', $supers);
+		$users = BackendUser::with('department')->with('backend');
 		if ($filterData->count() > 0) {
 			foreach ($filterData as $field => $value) {
 				$type = $allowFilterFields[$field];
@@ -159,9 +115,21 @@ class UserController extends ApiController
 		return $this->SUCCESS($users->paginate($request->input('size', config('miza.page_size'))));
 	}
 
+	public function delete (Request $request, $id)
+	{
+		$user = BackendUser::find($id);
+		if (!$user) {
+			return $this->NOT_FOUND();
+		}
+
+		$user->delete();
+
+		return $this->SUCCESS();
+	}
+
 	public function resetPassword (Request $request, $id)
 	{
-		$user = CmsUser::find($id);
+		$user = BackendUser::find($id);
 		if (!$user) {
 			return $this->NOT_FOUND();
 		}
@@ -182,17 +150,5 @@ class UserController extends ApiController
 		$user->save();
 
 		return $this->SUCCESS($user);
-	}
-
-	public function delete (Request $request, $id)
-	{
-		$user = CmsUser::find($id);
-		if (!$user) {
-			return $this->NOT_FOUND();
-		}
-
-		$user->delete();
-
-		return $this->SUCCESS();
 	}
 }

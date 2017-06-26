@@ -11,43 +11,43 @@ class Menu extends Model
 	// use SoftDeletes;
 	use NodeTrait;
 	protected $table = 'cms_menus';
-	protected $fillable = ['display_name', '_lft', '_rgt', 'parent_id', 'url', 'description', 'icon', 'route'];
-    protected $hidden = ['deleted_at', 'created_at', 'updated_at', '_lft', '_rgt'];
+	protected $fillable = ['display_name', '_lft', '_rgt', 'parent_id', 'url', 'description', 'icon', 'route', 'hidden'];
+	protected $hidden = ['deleted_at', 'created_at', 'updated_at', '_lft', '_rgt'];
 
 	public function cpermissions()
-    {
-    	return $this->hasMany('App\Models\Cms\Permission', 'menu_id');
-    }
+	{
+		return $this->hasMany('App\Models\Cms\Permission', 'menu_id');
+	}
 
-    public function permissions()
-    {
-    	return $this->belongsToMany('App\Models\Cms\Permission', 'cms_permission_menu', 'menu_id', 'permission_id');
-    }
+	public function permissions()
+	{
+		return $this->belongsToMany('App\Models\Cms\Permission', 'cms_permission_menu', 'menu_id', 'permission_id');
+	}
 
-    public static function tree()
-    {
-    	return Cache::remember('CMS_CACHE_MENUS_TREE', 0, function () {
-    		$tree = Menu::defaultOrder()->get()->toTree();
-            Menu::formatTree($tree);
+	public static function tree()
+	{
+		return Cache::remember('CMS_CACHE_MENUS_TREE', 0, function () {
+			$tree = Menu::defaultOrder()->get()->toTree();
+			Menu::formatTree($tree);
 
-            return $tree;
-    	});
-    }
+			return $tree;
+		});
+	}
 
-    public static function list ()
-    {
-        return Cache::remember('CMS_CACHE_MENUS_LIST', 0, function () {
-            $tree = Menu::get()->toFlatTree();
+	public static function list ()
+	{
+		return Cache::remember('CMS_CACHE_MENUS_LIST', 0, function () {
+			$tree = Menu::get()->toFlatTree();
 
-            return $tree;
-        });
-    }
+			return $tree;
+		});
+	}
 
-    private static function formatTree ($tree)
-    {
-        foreach ($tree as $key => $data) {
-            $data->permissions = $data->permissions()->pluck('id');
-            Menu::formatTree($data->children);
-        }
-    }
+	private static function formatTree ($tree)
+	{
+		foreach ($tree as $key => $data) {
+			$data->permissions = $data->permissions()->pluck('id');
+			Menu::formatTree($data->children);
+		}
+	}
 }
