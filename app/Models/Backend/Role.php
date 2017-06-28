@@ -9,7 +9,7 @@ class Role extends Model
 {
 	use SoftDeletes;
 	protected $table = 'backend_roles';
-	protected $fillable = ['name', 'display_name', 'description', 'weight'];
+	protected $fillable = ['name', 'display_name', 'description', 'weight', 'backend_id'];
     protected $dates = ['deleted_at'];
 
     public function permissions()

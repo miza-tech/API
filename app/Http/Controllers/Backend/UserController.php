@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Cms;
+namespace App\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -9,8 +9,18 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\ApiController;
 use App\BackendUser;
 
-class BackendUserController extends ApiController
+class UserController extends ApiController
 {
+	public function info (Request $request, $id)
+	{
+		$user = BackendUser::find($id);
+		if (!$user) {
+			return $this->NOT_FOUND();
+		}
+
+		return $this->SUCCESS($user);
+	}
+
 	public function create (Request $request)
 	{
 		$rules = [

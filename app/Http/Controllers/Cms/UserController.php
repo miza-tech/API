@@ -14,33 +14,19 @@ use App\Models\Cms\Menu;
 
 class UserController extends ApiController
 {
-	private function getProfile()
-	{
-		$user = Auth::guard('cms')->user();
-		if ($user) {
-			$roles = $user->roles();
-			$permissions = $user->permissions($user->roles());
-			$menus = $user->menus();
-			$user->roles = $roles->pluck('id');
-			$user->permissions = $permissions->pluck('id');
-			$user->menus = $menus->pluck('id');
-		}
-		return $user;
-	}
 	public function config (Request $request)
 	{
-		// return $this->VALIDATOR_FAIL([]);
 		$config = [
 			'authenticated' => Auth::guard('cms')->check(),
 			'user' => CmsUser::profile(),
-			'menus' => Menu::tree()
+			// 'menus' => Menu::tree()
 		];
 		return $this->SUCCESS($config);
 	}
 
 	public function profileInfo (Request $request)
 	{
-		return $this->SUCCESS($this->getProfile());
+		return $this->SUCCESS(CmsUser::profile());
 	}
 
 	public function profileUpdate (Request $request)

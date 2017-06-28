@@ -9,7 +9,7 @@ class Department extends Model
 {
 	use NodeTrait;
 	protected $table = 'backend_departments';
-	protected $fillable = ['display_name', '_lft', '_rgt', 'parent_id', 'description'];
+	protected $fillable = ['display_name', '_lft', '_rgt', 'parent_id', 'description', 'backend_id'];
     protected $hidden = ['deleted_at', 'created_at', 'updated_at', '_lft', '_rgt'];
 
     public static function tree()

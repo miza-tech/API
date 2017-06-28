@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Cms;
+namespace App\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -10,7 +10,7 @@ use App\Http\Controllers\ApiController;
 use App\Models\Backend\Account;
 use App\BackendUser;
 
-class BackendAccountController extends ApiController
+class AccountController extends ApiController
 {
 	public function info (Request $request, $id)
 	{

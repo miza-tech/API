@@ -1,34 +1,30 @@
 <?php
 
-namespace App\Http\Controllers\Cms;
+namespace App\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\ApiController;
-use App\Models\Cms\Permission;
-use Illuminate\Support\Facades\DB;
+use App\Models\Backend\Department;
 
-class PermissionController extends ApiController
+class DepartmentController extends ApiController
 {
 	public function list (Request $request)
 	{
-		$roles = Permission::list();
-
-		return $this->SUCCESS($roles);
+		return $this->SUCCESS(Department::tree());
 	}
 
 	public function create (Request $request)
 	{
 		$rules = [
-			'name' => 'required|unique:cms_permissions,name',
-			'route' => 'required|unique:cms_permissions,route',
 			'display_name' => 'required',
-			'action' => 'required',
-			'middleware' => '',
-			'weight' => 'integer',
-			'category_id' => 'required|exists:cms_permission_categories,id',
+			'backend_id' => 'required|exists:backend_accounts,id',
+			'parent_id' => '',
 			'description' => ''
 		];
+		if ($request->input('parent_id')) {
+			$rules['parent_id'] = 'exists:backend_departments,id';
+		}
 		$validator = Validator::make($request->all(), $rules);
 		if ($validator->fails())
 		{
@@ -37,10 +33,12 @@ class PermissionController extends ApiController
 
 		// DB::beginTransaction();
 		$inputData = collect($request->all())->only(collect($rules)->keys()->toArray())->toArray();
-		$permission = Permission::create($inputData);
 
-		if ($permission) {
-			return $this->SUCCESS($permission);
+		$department = Department::create($inputData);
+
+		if ($department) {
+			Department::fixTree();
+			return $this->SUCCESS($department);
 		} else {
 			return $this->RESPONSE('FAIL');
 		}
@@ -48,21 +46,21 @@ class PermissionController extends ApiController
 
 	public function update (Request $request, $id)
 	{
-		$permission = Permission::find($id);
-		if (!$permission) {
+		$department = Department::find($id);
+		if (!$department) {
 			return $this->NOT_FOUND();
 		}
 
 		$rules = [
-			'name' => 'required|unique:cms_permissions,name,' . $permission->id,
-			'route' => 'required|unique:cms_permissions,route,' . $permission->id,
 			'display_name' => 'required',
-			'action' => 'required',
-			'middleware' => '',
-			'weight' => '',
-			'category_id' => 'required|exists:cms_permission_categories,id',
+			'backend_id' => 'required|exists:backend_accounts,id',
+			'parent_id' => '',
 			'description' => ''
 		];
+		if ($request->input('parent_id')) {
+			$rules['parent_id'] = 'exists:backend_departments,id';
+		}
+
 		$validator = Validator::make($request->all(), $rules);
 		if ($validator->fails())
 		{
@@ -70,20 +68,30 @@ class PermissionController extends ApiController
 		}
 
 		$updateData = collect($request->all())->only(collect($rules)->keys()->toArray())->toArray();
-		$permission->update($updateData);
-		$permission->save();
+		$department->update($updateData);
 
-		return $this->SUCCESS($permission);
+		switch ($request->input('move')) {
+			case 'up':
+				$department->up();
+				break;
+			case 'down':
+				$department->down();
+				break;
+		}
+
+		Department::fixTree();
+		return $this->SUCCESS($department);
 	}
 
 	public function delete (Request $request, $id)
 	{
-		$permission = Permission::find($id);
-		if (!$permission) {
+		$department = Department::find($id);
+		if (!$department) {
 			return $this->NOT_FOUND();
 		}
 
-		$permission->delete();
+		$department->delete();
+		Department::fixTree();
 
 		return $this->SUCCESS();
 	}

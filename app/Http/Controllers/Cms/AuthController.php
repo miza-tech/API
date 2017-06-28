@@ -26,7 +26,7 @@ class AuthController extends ApiController
 		$rememberMe = ($request->input('remember_me') == 1);
 
 		if(Auth::guard('cms')->attempt($credentials, $rememberMe)) {
-			return $this->SUCCESS(Auth::guard('cms')->user());
+			return $this->SUCCESS(CmsUser::profile());
 		} else {
 			return $this->RESPONSE('LOGIN_FAIL');
 		}

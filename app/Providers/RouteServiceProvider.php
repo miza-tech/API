@@ -60,21 +60,21 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::prefix('cms/api/v1')
              ->middleware('cms')
-             ->namespace($this->namespace . '\Cms')
+             ->namespace($this->namespace)
              ->group(base_path('routes/cms.php'));
     }
     protected function mapBackendRoutes()
     {
         Route::prefix('backend/api/v1')
              ->middleware('backend')
-             ->namespace($this->namespace . '\Backend')
+             ->namespace($this->namespace)
              ->group(base_path('routes/backend.php'));
     }
     protected function mapClientRoutes()
     {
         Route::prefix('client/api/v1')
              ->middleware('client')
-             ->namespace($this->namespace . '\Client')
+             ->namespace($this->namespace)
              ->group(base_path('routes/client.php'));
     }
 }

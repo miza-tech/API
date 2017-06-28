@@ -2,30 +2,30 @@
 use App\Models\Cms\Permission;
 
 // user auth
-Route::post('auth/password', 	['uses' => 'AuthController@authByPassword']);
-Route::post('auth/sms', 		['uses' => 'AuthController@authBySms']);
-Route::post('auth/logout', 		['uses' => 'AuthController@logout']);
+Route::post('auth/password', 	['uses' => 'Cms\AuthController@authByPassword']);
+Route::post('auth/sms', 		['uses' => 'Cms\AuthController@authBySms']);
+Route::post('auth/logout', 		['uses' => 'Cms\AuthController@logout']);
 
 // app config
-Route::get('config',			['uses' => 'UserController@config']);
+Route::get('config',			['uses' => 'Cms\UserController@config']);
 
 // user profile
-Route::get('profile',			['uses' => 'UserController@profileInfo']);
-Route::patch('profile',			['uses' => 'UserController@profileUpdate'])->middleware('auth:cms');
+Route::get('profile',			['uses' => 'Cms\UserController@profileInfo']);
+Route::patch('profile',			['uses' => 'Cms\UserController@profileUpdate'])->middleware('auth:cms');
 
 // captcha
-Route::get('captcha/img', 		['uses' => 'CaptchaController@img']);
-Route::post('captcha/sms', 		['uses' => 'CaptchaController@sms']);
+Route::get('captcha/img', 		['uses' => 'Cms\CaptchaController@img']);
+Route::post('captcha/sms', 		['uses' => 'Cms\CaptchaController@sms']);
 
 
 $routes = Permission::routes();
 foreach ($routes as $route) {
 
-	$explode = explode('.', $route->name);
+	$explode = explode('.', $route->route);
 	$method = $explode[0];
 	$url = $explode[1];
 	$conf = [
-		'as' => $route->name,
+		'as' => $route->route,
 		'uses' => $route->action,
 		'middleware' => ['auth:cms']
 	];
